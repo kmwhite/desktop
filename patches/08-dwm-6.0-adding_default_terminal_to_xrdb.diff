@@ -1,0 +1,33 @@
+diff -r b37f5adc7ca5 config.def.h
+--- a/config.def.h	Tue Jun 26 02:22:48 2012 -0500
++++ b/config.def.h	Tue Jun 26 16:13:02 2012 -0500
+@@ -54,7 +54,7 @@
+ 
+ /* commands */
+ static const char *dmenucmd[] = { "dmenu_run", NULL };
+-static const char *termcmd[]  = { "xterm", NULL };
++static const char *termcmd[]  = { NULL, NULL };
+ 
+ static Key keys[] = {
+ 	/* modifier                     key        function        argument */
+diff -r b37f5adc7ca5 dwm.c
+--- a/dwm.c	Tue Jun 26 02:22:48 2012 -0500
++++ b/dwm.c	Tue Jun 26 16:13:02 2012 -0500
+@@ -2466,6 +2466,8 @@
+ 		xdb = XrmGetStringDatabase(xrm);
+ 		if( font == NULL && XrmGetResource(xdb, "Dwm.Font", "*", datatype, &xvalue) == True )
+ 			font = strdup(xvalue.addr);
++		if( termcmd[0] == NULL && XrmGetResource(xdb, "Dwm.DefaultTerminal", "*", datatype, &xvalue) == True )
++			termcmd[0] = strdup(xvalue.addr);
+ 		if( normbordercolor == NULL && XrmGetResource(xdb, "Dwm.NormalBorderColor", "*", datatype, &xvalue) == True )
+ 			normbordercolor = strdup(xvalue.addr);
+ 		if( normbgcolor == NULL && XrmGetResource(xdb, "Dwm.NormalBgColor", "*", datatype, &xvalue) == True )
+@@ -2483,6 +2485,8 @@
+ 	/* Set default colors if they are not set */
+ 	if( font == NULL )
+ 		font = "-*-terminus-medium-r-*-*-16-*-*-*-*-*-*-*";
++	if( termcmd[0] == NULL )
++		termcmd[0] = "xterm";
+ 	if( normbordercolor == NULL )
+ 		normbordercolor = "#444444";
+ 	if( normbgcolor == NULL )

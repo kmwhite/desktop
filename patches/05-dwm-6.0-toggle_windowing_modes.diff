@@ -1,0 +1,36 @@
+diff -r 5acbc3ef1d0e config.def.h
+--- a/config.def.h	Wed Jun 20 16:19:35 2012 -0500
++++ b/config.def.h	Wed Jun 20 16:41:27 2012 -0500
+@@ -33,12 +33,12 @@
+ #include "grid.c"
+ static const Layout layouts[] = {
+ 	/* symbol     arrange function */
+-	{ "[]=",      tile },    /* first entry is default */
+-	{ "><>",      NULL },    /* no layout function means floating behavior */
++	{ "[T]",      tile },    /* first entry is default */
++	{ "[ ]",      NULL },    /* no layout function means floating behavior */
+ 	{ "[M]",      monocle },
+  	{ "[@]",      spiral },
+- 	{ "[\\]",      dwindle },
+-	{ "HHH",      grid },
++ 	{ "[&]",      dwindle },
++	{ "[+]",      grid },
+ };
+ 
+ /* key definitions */
+@@ -70,9 +70,12 @@
+ 	{ MODKEY,                       XK_Return, zoom,           {0} },
+ 	{ MODKEY,                       XK_Tab,    view,           {0} },
+ 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
+-	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
+-	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
+-	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
++	{ MODKEY|ShiftMask,             XK_t,      setlayout,      {.v = &layouts[0]} },
++	{ MODKEY|ShiftMask,             XK_f,      setlayout,      {.v = &layouts[1]} },
++	{ MODKEY|ShiftMask,             XK_m,      setlayout,      {.v = &layouts[2]} },
++	{ MODKEY|ShiftMask,             XK_s,      setlayout,      {.v = &layouts[3]} },
++	{ MODKEY|ShiftMask,             XK_d,      setlayout,      {.v = &layouts[4]} },
++	{ MODKEY|ShiftMask,             XK_g,      setlayout,      {.v = &layouts[5]} },
+ 	{ MODKEY,                       XK_space,  setlayout,      {0} },
+ 	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
+ 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },

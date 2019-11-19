@@ -1,0 +1,105 @@
+diff -r 0a3f4b22e97a config.def.h
+--- a/config.def.h	Mon Jun 25 10:58:41 2012 -0500
++++ b/config.def.h	Mon Jun 25 12:02:04 2012 -0500
+@@ -1,14 +1,13 @@
+ /* See LICENSE file for copyright and license details. */
+ 
+ /* appearance */
+-//static const char font[]            = "-*-terminus-medium-r-*-*-16-*-*-*-*-*-*-*";
+-static const char font[]            = "Ubuntu Mono";
+-static const char normbordercolor[] = "#444444";
+-static const char normbgcolor[]     = "#222222";
+-static const char normfgcolor[]     = "#bbbbbb";
+-static const char selbordercolor[]  = "#005577";
+-static const char selbgcolor[]      = "#005577";
+-static const char selfgcolor[]      = "#eeeeee";
++static const char *font             = NULL;
++static const char *normbordercolor  = NULL;
++static const char *normbgcolor      = NULL;
++static const char *normfgcolor      = NULL;
++static const char *selbordercolor   = NULL;
++static const char *selbgcolor       = NULL;
++static const char *selfgcolor       = NULL;
+ static const unsigned int borderpx  = 1;        /* border pixel of windows */
+ static const unsigned int snap      = 32;       /* snap pixel */
+ static const unsigned int systrayspacing = 2;   /* systray spacing */
+diff -r 0a3f4b22e97a dwm.c
+--- a/dwm.c	Mon Jun 25 10:58:41 2012 -0500
++++ b/dwm.c	Mon Jun 25 12:02:04 2012 -0500
+@@ -36,6 +36,7 @@
+ #include <X11/Xlib.h>
+ #include <X11/Xproto.h>
+ #include <X11/Xutil.h>
++#include <X11/Xresource.h>
+ #ifdef XINERAMA
+ #include <X11/extensions/Xinerama.h>
+ #endif /* XINERAMA */
+@@ -232,6 +233,7 @@
+ static void pop(Client *);
+ static void propertynotify(XEvent *e);
+ static void quit(const Arg *arg);
++static void read_resources(void);
+ static Monitor *recttomon(int x, int y, int w, int h);
+ static void removesystrayicon(Client *i);
+ static void resize(Client *c, int x, int y, int w, int h, Bool interact);
+@@ -1730,6 +1732,7 @@
+ 	/* init screen */
+ 	screen = DefaultScreen(dpy);
+ 	root = RootWindow(dpy, screen);
++	read_resources();
+ 	initfont(font);
+ 	sw = DisplayWidth(dpy, screen);
+ 	sh = DisplayHeight(dpy, screen);
+@@ -2397,6 +2400,52 @@
+ 	pop(c);
+ }
+ 
++/* Set font and colors from X resources database if they are not set
++ * from command line */
++void
++read_resources(void) {
++	XrmDatabase xdb;
++	char* xrm;
++	char* datatype[20];
++	XrmValue xvalue;
++
++	XrmInitialize();
++	xrm = XResourceManagerString(dpy);
++	if( xrm != NULL ) {
++		xdb = XrmGetStringDatabase(xrm);
++		if( font == NULL && XrmGetResource(xdb, "Dwm.Font", "*", datatype, &xvalue) == True )
++			font = strdup(xvalue.addr);
++		if( normbordercolor == NULL && XrmGetResource(xdb, "Dwm.NormalBorderColor", "*", datatype, &xvalue) == True )
++			normbordercolor = strdup(xvalue.addr);
++		if( normbgcolor == NULL && XrmGetResource(xdb, "Dwm.NormalBgColor", "*", datatype, &xvalue) == True )
++			normbgcolor = strdup(xvalue.addr);
++		if( normfgcolor == NULL && XrmGetResource(xdb, "Dwm.NormalFgColor", "*", datatype, &xvalue) == True )
++			normfgcolor = strdup(xvalue.addr);
++		if( selbordercolor == NULL && XrmGetResource(xdb, "Dwm.SelectedBorderColor", "*", datatype, &xvalue) == True )
++			selbordercolor = strdup(xvalue.addr);
++		if( selbgcolor == NULL && XrmGetResource(xdb, "Dwm.SelectedBgColor", "*", datatype, &xvalue) == True )
++			selbgcolor = strdup(xvalue.addr);
++		if( selfgcolor == NULL && XrmGetResource(xdb, "Dwm.SelectedFgColor", "*", datatype, &xvalue) == True )
++			selfgcolor = strdup(xvalue.addr);
++		XrmDestroyDatabase(xdb);
++	}
++	/* Set default colors if they are not set */
++	if( font == NULL )
++		font = "-*-terminus-medium-r-*-*-16-*-*-*-*-*-*-*";
++	if( normbordercolor == NULL )
++		normbordercolor = "#444444";
++	if( normbgcolor == NULL )
++		normbgcolor = "#222222";
++	if( normfgcolor == NULL )
++		normfgcolor = "#bbbbbb";
++	if( selbordercolor == NULL )
++		selbordercolor = "#005577";
++	if( selbgcolor == NULL )
++		selbgcolor  = "#005577";
++	if( selfgcolor == NULL )
++		selfgcolor  = "#eeeeee";
++}
++
+ int
+ main(int argc, char *argv[]) {
+ 	if(argc == 2 && !strcmp("-v", argv[1]))
