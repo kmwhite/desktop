@@ -1,0 +1,185 @@
+diff -r f3dea6294cce dwm.c
+--- a/dwm.c	Mon Jun 25 12:03:22 2012 -0500
++++ b/dwm.c	Tue Jun 26 02:21:23 2012 -0500
+@@ -123,6 +123,7 @@
+ 	XftColor sel[ColLast];
+ 	Drawable drawable;
+ 	GC gc;
++	GC invert_gc;
+ 	struct {
+ 		int ascent;
+ 		int descent;
+@@ -203,6 +204,7 @@
+ static Monitor *dirtomon(int dir);
+ static void drawbar(Monitor *m);
+ static void drawbars(void);
++static void drawoutline(int x, int y, int w, int h, int bw);
+ static void drawsquare(Bool filled, Bool empty, Bool invert, XftColor col[ColLast]);
+ static void drawtext(const char *text, XftColor col[ColLast], Bool invert);
+ static void enternotify(XEvent *e);
+@@ -526,6 +528,7 @@
+ 	XUngrabKey(dpy, AnyKey, AnyModifier, root);
+ 	XFreePixmap(dpy, dc.drawable);
+ 	XFreeGC(dpy, dc.gc);
++	XFreeGC(dpy, dc.invert_gc);
+ 	XFreeCursor(dpy, cursor[CurNormal]);
+ 	XFreeCursor(dpy, cursor[CurResize]);
+ 	XFreeCursor(dpy, cursor[CurMove]);
+@@ -798,6 +801,13 @@
+ 	return m;
+ }
+ 
++void 
++drawoutline(int x, int y, int w, int h, int bw) {
++	XDrawRectangle(dpy, root, dc.invert_gc,
++		x-bw, y-bw,
++		w+2*bw-1, h+2*bw-1);
++}
++
+ void
+ drawbar(Monitor *m) {
+ 	int x;
+@@ -1310,6 +1320,7 @@
+ void
+ movemouse(const Arg *arg) {
+ 	int x, y, ocx, ocy, nx, ny;
++	Bool first;
+ 	Client *c;
+ 	Monitor *m;
+ 	XEvent ev;
+@@ -1317,13 +1328,14 @@
+ 	if(!(c = selmon->sel))
+ 		return;
+ 	restack(selmon);
+-	ocx = c->x;
+-	ocy = c->y;
++	nx = ocx = c->x;
++	ny = ocy = c->y;
+ 	if(XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
+ 	None, cursor[CurMove], CurrentTime) != GrabSuccess)
+ 		return;
+ 	if(!getrootptr(&x, &y))
+ 		return;
++	first=True;
+ 	do {
+ 		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
+ 		switch(ev.type) {
+@@ -1333,6 +1345,10 @@
+ 			handler[ev.type](&ev);
+ 			break;
+ 		case MotionNotify:
++			if (!first) {
++				drawoutline(nx, ny, c->w, c->h, c->bw); /* clear */
++				XUngrabServer(dpy);
++			}
+ 			nx = ocx + (ev.xmotion.x - x);
+ 			ny = ocy + (ev.xmotion.y - y);
+ 			if(nx >= selmon->wx && nx <= selmon->wx + selmon->ww
+@@ -1349,11 +1365,20 @@
+ 				&& (abs(nx - c->x) > snap || abs(ny - c->y) > snap))
+ 					togglefloating(NULL);
+ 			}
+-			if(!selmon->lt[selmon->sellt]->arrange || c->isfloating)
+-				resize(c, nx, ny, c->w, c->h, True);
++			if(!selmon->lt[selmon->sellt]->arrange || c->isfloating) {
++				if (!first) XSync(dpy, False);
++				XGrabServer(dpy);
++				drawoutline(nx, ny, c->w, c->h, c->bw);
++				first=False;
++			}
+ 			break;
+ 		}
+ 	} while(ev.type != ButtonRelease);
++	if (!first) {
++		drawoutline(nx, ny, c->w, c->h, c->bw); /* clear */
++		XUngrabServer(dpy);
++		if (nx != ocx || ny != ocy) resize(c, nx, ny, c->w, c->h, True);
++	}
+ 	XUngrabPointer(dpy, CurrentTime);
+ 	if((m = recttomon(c->x, c->y, c->w, c->h)) != selmon) {
+ 		sendmon(c, m);
+@@ -1483,8 +1508,9 @@
+ 
+ void
+ resizemouse(const Arg *arg) {
+-	int ocx, ocy;
++	int ocx, ocy, ocw, och;
+ 	int nw, nh;
++	Bool first;
+ 	Client *c;
+ 	Monitor *m;
+ 	XEvent ev;
+@@ -1494,10 +1520,13 @@
+ 	restack(selmon);
+ 	ocx = c->x;
+ 	ocy = c->y;
++	ocw = nw = c->w;
++	och = nh = c->h;
+ 	if(XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
+ 	                None, cursor[CurResize], CurrentTime) != GrabSuccess)
+ 		return;
+ 	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w + c->bw - 1, c->h + c->bw - 1);
++	first=True;
+ 	do {
+ 		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
+ 		switch(ev.type) {
+@@ -1507,6 +1536,10 @@
+ 			handler[ev.type](&ev);
+ 			break;
+ 		case MotionNotify:
++			if (!first) {
++				drawoutline(c->x, c->y, nw, nh, c->bw); /* clear */
++				XUngrabServer(dpy);
++			}
+ 			nw = MAX(ev.xmotion.x - ocx - 2 * c->bw + 1, 1);
+ 			nh = MAX(ev.xmotion.y - ocy - 2 * c->bw + 1, 1);
+ 			if(c->mon->wx + nw >= selmon->wx && c->mon->wx + nw <= selmon->wx + selmon->ww
+@@ -1516,11 +1549,20 @@
+ 				&& (abs(nw - c->w) > snap || abs(nh - c->h) > snap))
+ 					togglefloating(NULL);
+ 			}
+-			if(!selmon->lt[selmon->sellt]->arrange || c->isfloating)
+-				resize(c, c->x, c->y, nw, nh, True);
++			if(!selmon->lt[selmon->sellt]->arrange || c->isfloating) {
++				if (!first) XSync(dpy, False);
++				XGrabServer(dpy);
++				drawoutline(c->x, c->y, nw, nh, c->bw);
++				first=False;
++			}
+ 			break;
+ 		}
+ 	} while(ev.type != ButtonRelease);
++	if (!first) {
++		drawoutline(c->x, c->y, nw, nh, c->bw); /* clear */
++		XUngrabServer(dpy);
++		if (nw != ocw || nh != och) resize(c, c->x, c->y, nw, nh, True);
++	}
+ 	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w + c->bw - 1, c->h + c->bw - 1);
+ 	XUngrabPointer(dpy, CurrentTime);
+ 	while(XCheckMaskEvent(dpy, EnterWindowMask, &ev));
+@@ -1725,6 +1767,7 @@
+ void
+ setup(void) {
+ 	XSetWindowAttributes wa;
++	XGCValues gv;
+ 
+ 	/* clean up any zombies immediately */
+ 	sigchld(0);
+@@ -1772,9 +1815,17 @@
+ 	XSetLineAttributes(dpy, dc.gc, 1, LineSolid, CapButt, JoinMiter);
+ 	/* init system tray */
+ 	updatesystray();
++
++	/* setup window moving */
++	gv.function = GXinvert;
++	gv.subwindow_mode = IncludeInferiors;
++	gv.line_width = 1;  /* opt_bw */
++	dc.invert_gc = XCreateGC(dpy, root, GCFunction | GCSubwindowMode | GCLineWidth, &gv);
++
+ 	/* init bars */
+ 	updatebars();
+ 	updatestatus();
++
+ 	/* EWMH support per view */
+ 	XChangeProperty(dpy, root, netatom[NetSupported], XA_ATOM, 32,
+ 			PropModeReplace, (unsigned char *) netatom, NetLast);

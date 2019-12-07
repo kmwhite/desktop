@@ -1,0 +1,44 @@
+diff -r 8257dea8c509 config.mk
+--- a/config.mk	Wed Jun 20 02:53:46 2012 -0500
++++ b/config.mk	Wed Jun 20 03:18:44 2012 -0500
+@@ -4,7 +4,7 @@
+ # Customize below to fit your system
+ 
+ # paths
+-PREFIX = /usr/local
++PREFIX = ${HOME}/.local
+ MANPREFIX = ${PREFIX}/share/man
+ 
+ X11INC = /usr/X11R6/include
+@@ -14,9 +14,12 @@
+ XINERAMALIBS = -L${X11LIB} -lXinerama
+ XINERAMAFLAGS = -DXINERAMA
+ 
++# Xft and FreeType
++FTINC = ${X11INC}/freetype2
++
+ # includes and libs
+-INCS = -I. -I/usr/include -I${X11INC}
+-LIBS = -L/usr/lib -lc -L${X11LIB} -lX11 ${XINERAMALIBS}
++INCS = -I. -I/usr/include -I${X11INC} -I${FTINC}
++LIBS = -L/usr/lib -lc -L${X11LIB} -lX11 ${XINERAMALIBS} -lXft
+ 
+ # flags
+ CPPFLAGS = -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS}
+diff -r 8257dea8c509 dwm.c
+--- a/dwm.c	Wed Jun 20 02:53:46 2012 -0500
++++ b/dwm.c	Wed Jun 20 03:18:44 2012 -0500
+@@ -2235,11 +2235,11 @@
+ 		/* init systray */
+ 		if(!(systray = (Systray *)calloc(1, sizeof(Systray))))
+ 			die("fatal: could not malloc() %u bytes\n", sizeof(Systray));
+-		systray->win = XCreateSimpleWindow(dpy, root, x, selmon->by, w, bh, 0, 0, dc.sel[ColBG]);
++		systray->win = XCreateSimpleWindow(dpy, root, x, selmon->by, w, bh, 0, 0, dc.sel[ColBG].pixel);
+ 		wa.event_mask        = ButtonPressMask | ExposureMask;
+ 		wa.override_redirect = True;
+ 		wa.background_pixmap = ParentRelative;
+-		wa.background_pixel  = dc.norm[ColBG];
++		wa.background_pixel  = dc.norm[ColBG].pixel;
+ 		XSelectInput(dpy, systray->win, SubstructureNotifyMask);
+ 		XChangeProperty(dpy, systray->win, netatom[NetSystemTrayOrientation], XA_CARDINAL, 32,
+ 				PropModeReplace, (unsigned char *)&systrayorientation, 1);
