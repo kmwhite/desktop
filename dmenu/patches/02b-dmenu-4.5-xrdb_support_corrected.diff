@@ -1,0 +1,51 @@
+diff -r 525fb98bdc90 dmenu.c
+--- a/dmenu.c	Sun Jun 24 22:53:47 2012 -0500
++++ b/dmenu.c	Mon Jun 25 11:43:38 2012 -0500
+@@ -41,7 +41,7 @@
+ static void run(void);
+ static void setup(void);
+ static void usage(void);
+-static void read_resourses(void);
++static void read_resources(void);
+ 
+ static char text[BUFSIZ] = "";
+ static int bh, mw, mh;
+@@ -110,7 +110,7 @@
+ 			usage();
+ 
+ 	dc = initdc();
+-	read_resourses();
++	read_resources();
+ 	initfont(dc, font ? font : DEFFONT);
+ 	normcol = initcolor(dc, normfgcolor, normbgcolor);
+ 	selcol = initcolor(dc, selfgcolor, selbgcolor);
+@@ -133,7 +133,7 @@
+ /* Set font and colors from X resources database if they are not set
+  * from command line */
+ void
+-read_resourses(void) {
++read_resources(void) {
+ 	XrmDatabase xdb;
+ 	char* xrm;
+ 	char* datatype[20];
+@@ -143,15 +143,15 @@
+ 	xrm = XResourceManagerString(dc->dpy);
+ 	if( xrm != NULL ) {
+ 		xdb = XrmGetStringDatabase(xrm);
+-		if( font == NULL && XrmGetResource(xdb, "dmenu.font", "*", datatype, &xvalue) == True )
++		if( font == NULL && XrmGetResource(xdb, "DMenu.Font", "*", datatype, &xvalue) == True )
+ 			font = strdup(xvalue.addr);
+-		if( normfgcolor == NULL && XrmGetResource(xdb, "dmenu.foreground", "*", datatype, &xvalue) == True )
++		if( normfgcolor == NULL && XrmGetResource(xdb, "DMenu.Foreground", "*", datatype, &xvalue) == True )
+ 			normfgcolor = strdup(xvalue.addr);
+-		if( normbgcolor == NULL && XrmGetResource(xdb, "dmenu.background", "*", datatype, &xvalue) == True )
++		if( normbgcolor == NULL && XrmGetResource(xdb, "DMenu.Background", "*", datatype, &xvalue) == True )
+ 			normbgcolor = strdup(xvalue.addr);
+-		if( selfgcolor == NULL && XrmGetResource(xdb, "dmenu.selforeground", "*", datatype, &xvalue) == True )
++		if( selfgcolor == NULL && XrmGetResource(xdb, "DMenu.SelectedForeground", "*", datatype, &xvalue) == True )
+ 			selfgcolor = strdup(xvalue.addr);
+-		if( selbgcolor == NULL && XrmGetResource(xdb, "dmenu.selbackground", "*", datatype, &xvalue) == True )
++		if( selbgcolor == NULL && XrmGetResource(xdb, "DMenu.SelectedBackground", "*", datatype, &xvalue) == True )
+ 			selbgcolor = strdup(xvalue.addr);
+ 		XrmDestroyDatabase(xdb);
+ 	}
