@@ -16,22 +16,11 @@ static const Bool showbar           = True;     /* False means no bar */
 static const Bool topbar            = True;     /* False means bottom bar */
 
 /* tagging */
-static const char *tags[] = { "alpha", "beta" }; // "dev", "web", "mail", "im", "console" };
+static const char *tags[] = { "1", "2", "3", "4" };
 
 static const Rule rules[] = {
-	/* class          instance    title       tags mask     isfloating   monitor
-	{ "Gimp",         NULL,       NULL,       0,            True,        -1 },
-	{ "VirtualBox",   NULL,       NULL,       1<<0,         False,       -1 },
-	{ "Firefox",      NULL,       NULL,       1<<1,         False,       -1 },
-	// { "Chromium",     NULL,       NULL,       1<<1,         False,       -1 },
-	// { "XXXTerm",      NULL,       NULL,       1<<1,         False,       -1 },
-	// { "Chrome",       NULL,       NULL,       1<<1,         False,       -1 },
-	{ "Thunderbird",  NULL,       NULL,       1<<2,         False,       -1 },
-	// { "Sylpheed",     NULL,       NULL,       1<<2,         False,       -1 },
-	{ "Pidgin",       NULL,       NULL,       1<<3,         True,        -1 },
-	{ "Xchat",        NULL,       NULL,       1<<3,         True,        -1 },
-	{ "Skype",        NULL,       NULL,       1<<3,         True,        -1 },
-	{ "XConsole",     NULL,       NULL,       1<<4,         False,       -1 }, */
+	/* class          instance    title       tags mask     isfloating   monitor */
+	{ "XConsole",     NULL,       NULL,       1<<3,         False,       -1 },
 };
 
 /* layout(s) */
