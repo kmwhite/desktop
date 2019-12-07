@@ -64,7 +64,7 @@ static const Layout layouts[] = {
 
 /* commands */
 static const char *dmenucmd[] = { "dmenu_run", NULL };
-static const char *termcmd[]  = { "st", NULL };
+static const char *termcmd[]  = { NULL, NULL };
 static const char *lockcmd[]  = { "xscreensaver-command", "-lock", NULL };
 
 #include "movestack.c"
